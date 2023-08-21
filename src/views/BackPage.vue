@@ -70,7 +70,7 @@ print('now is', now())
         <div>黑马：<strong>大事件自己人大事件</strong></div>
         <el-dropdown replacement="bottom-end">
           <span class="el-dropdown__box">
-            <el-avatar src="favicon.ico"></el-avatar>
+            <el-avatar src="/favicon.ico"></el-avatar>
             <el-icon><CaretBottom /></el-icon>
           </span>
           <template #dropdown>
@@ -82,7 +82,36 @@ print('now is', now())
       </el-header>
       <el-main>
         <el-card>
-          <PythonEditor v-model="code" :callables="['abc', 'Xyz']"></PythonEditor>
+          <PythonEditor
+            v-model="code"
+            :callables="{
+              Class: 'function',
+              Enum: 'function',
+              GameManager: 'function',
+              GameServerStarter: 'function',
+              JavaAgent: 'type',
+              Manager: 'function',
+              Module: 'function',
+              Remote: 'type',
+              User: 'type',
+              UserManager: 'function',
+              agent: 'module',
+              getFactionTower: 'function',
+              is_object_class: 'function',
+              ok: 'function',
+              pyava: 'module',
+              reloadCfg: 'function',
+              reloadManagerCfg: 'function',
+              reloadModule: 'function',
+              salt: 'function',
+              saltOut: 'function',
+              tools: 'module',
+              uids: 'function',
+              unwrap: 'function',
+              user: 'function',
+              userOnline: 'function'
+            }"
+          ></PythonEditor>
         </el-card>
       </el-main>
       <el-footer>后台测试 - 数据修改</el-footer>

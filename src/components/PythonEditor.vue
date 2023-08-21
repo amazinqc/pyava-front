@@ -21,10 +21,13 @@ import {
   type Completion
 } from '@codemirror/autocomplete'
 
-const props = withDefaults(defineProps<{ code?: string; callables?: string[] }>(), {
-  code: 'from bgtools import example\nexample()\n',
-  callables: () => []
-})
+const props = withDefaults(
+  defineProps<{ code?: string; callables?: Array<string> | Record<string, string> }>(),
+  {
+    code: 'from bgtools import example\nexample()\n',
+    callables: () => []
+  }
+)
 
 const extensions = [
   python(),
@@ -42,24 +45,34 @@ const extensions = [
 
         const apply = (vp: any, cp: Completion, from: number, to: number) => {
           vp.dispatch({
-            changes: { from, to, insert: cp.label + '()' },
+            changes: { from, to, insert: cp.label + (cp.type === 'namespace' ? '.' : '()') },
             selection: { anchor: from + cp.label.length + 1 }
           })
+        }
+        const customs = []
+        if (props.callables instanceof Array) {
+          customs.push(
+            ...props.callables.map((custom) => {
+              return { label: custom, type: 'function', detail: 'custom function', apply }
+            })
+          )
+        } else {
+          for (const key in props.callables) {
+            if (Object.prototype.hasOwnProperty.call(props.callables, key)) {
+              const val = props.callables[key]
+              customs.push({
+                label: key,
+                type: val === 'module' ? 'namespace' : val,
+                detail: `custom ${val}`,
+                apply
+              })
+            }
+          }
         }
 
         return {
           from: /^\w/.test(word!.text) ? word!.from : word!.from + 1,
-          options: [
-            ...props.callables.map((custom) => {
-              return { label: custom, type: 'function', detail: 'custom function', apply }
-            }),
-            { label: 'User', type: 'class', info: 'uid玩家', apply },
-            { label: 'user', type: 'function', info: 'ID玩家', apply },
-            { label: 'Manager', type: 'class', detail: 'game manager', apply },
-            { label: 'Class', type: 'class', detail: 'game class', apply },
-            { label: 'Enum', type: 'class', detail: 'game enum', apply },
-            { label: 'unwrap', type: 'function', detail: 'fetch or raise result', apply }
-          ]
+          options: [...customs, { label: 'Remote', type: 'interface', info: 'doc', apply: '# ' }]
         } as CompletionResult
       },
       /* 自定义特殊类型的快捷b包装提示 */
