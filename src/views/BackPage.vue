@@ -6,20 +6,35 @@ import {
   Management,
   Promotion,
   UserFilled,
-  CaretBottom
+  CaretBottom,
+  SwitchButton
 } from '@element-plus/icons-vue'
 import PythonEditor from '@/components/PythonEditor.vue'
+import { apiCodeTips, apiPyavaCode, apiTestCode } from '@/request/api'
 </script>
 
 <script lang="ts" setup>
 const code = ref(`\
 # loading code from the server...
 `)
-code.value = `\
-from time import time
-now = lambda: int(time())
-print('now is', now())
-`
+onMounted(async () => {
+  const c = await apiPyavaCode(1)
+  code.value = c.code
+})
+
+watch(code, (o, n) => {
+  console.log(o, n)
+})
+
+let customed: {}
+
+onMounted(async () => {
+  customed = await apiCodeTips()
+})
+
+const test = async () => {
+  console.log(await apiTestCode({ code: code.value, name: '' }))
+}
 </script>
 
 <template>
@@ -70,48 +85,22 @@ print('now is', now())
         <div>黑马：<strong>大事件自己人大事件</strong></div>
         <el-dropdown replacement="bottom-end">
           <span class="el-dropdown__box">
-            <el-avatar src="/favicon.ico"></el-avatar>
+            <el-avatar src="logo.png"></el-avatar>
             <el-icon><CaretBottom /></el-icon>
           </span>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item command="profile" :icon="User"> 账号数据 </el-dropdown-item>
+              <el-dropdown-item command="profile" :icon="SwitchButton">
+                重置浏览器数据
+              </el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
       </el-header>
       <el-main>
         <el-card>
-          <PythonEditor
-            v-model="code"
-            :callables="{
-              Class: 'function',
-              Enum: 'function',
-              GameManager: 'function',
-              GameServerStarter: 'function',
-              JavaAgent: 'type',
-              Manager: 'function',
-              Module: 'function',
-              Remote: 'type',
-              User: 'type',
-              UserManager: 'function',
-              agent: 'module',
-              getFactionTower: 'function',
-              is_object_class: 'function',
-              ok: 'function',
-              pyava: 'module',
-              reloadCfg: 'function',
-              reloadManagerCfg: 'function',
-              reloadModule: 'function',
-              salt: 'function',
-              saltOut: 'function',
-              tools: 'module',
-              uids: 'function',
-              unwrap: 'function',
-              user: 'function',
-              userOnline: 'function'
-            }"
-          ></PythonEditor>
+          <PythonEditor v-model="code" :callables="customed"></PythonEditor>
+          <button @click="test">测试</button>
         </el-card>
       </el-main>
       <el-footer>后台测试 - 数据修改</el-footer>
@@ -140,7 +129,28 @@ print('now is', now())
 
 .layout-container .el-aside .el-aside__logo {
   height: 120px;
-  background: url('favicon.ico') no-repeat center / 120px auto;
+  background: url('logo.png') no-repeat center / 120px auto;
+  opacity: 0.5;
+}
+@keyframes rotate {
+  0% {
+  }
+  25% {
+    transform: rotatez(360deg);
+  }
+  50% {
+    transform: rotatez(360deg) rotatey(360deg);
+  }
+  75% {
+    transform: rotatez(360deg) rotatey(360deg) rotatez(360deg);
+  }
+  100% {
+    transform: rotatez(360deg) rotatey(360deg) rotatez(360deg) rotatey(-360deg);
+  }
+}
+
+.el-aside__logo:hover {
+  animation: rotate 4s ease-in-out;
 }
 .layout-container .el-menu {
   border-right: none;

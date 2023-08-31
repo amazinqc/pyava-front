@@ -1,10 +1,10 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 
-const baseURL = 'http://big-event-vue-api-t.itheima.net'
+// const baseURL = 'http://big-event-vue-api-t.itheima.net'
 
 const instance = axios.create({
-  baseURL,
+  baseURL: import.meta.env.BASE_URL,
   timeout: 60000
 })
 
@@ -17,18 +17,14 @@ instance.interceptors.request.use(
 
 instance.interceptors.response.use(
   (resp) => {
-    if (resp.data.code === 0) {
-      return resp
+    if (resp.data.code === 200) {
+      return resp.data.data
     }
     ElMessage.error(resp.data.message || '数据异常')
     return Promise.reject(resp.data)
   },
   (err) => {
-    if (err.response?.status === 401) {
-      console.log(err)
-    }
-    console.log(err)
-    ElMessage.error(err.response.data.message || '服务异常')
+    ElMessage.error(err.message || err?.response.data.message || '服务异常')
     return Promise.reject(err)
   }
 )

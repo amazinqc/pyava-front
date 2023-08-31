@@ -7,6 +7,7 @@
     :indent-with-tab="true"
     :tabSize="2"
     :extensions="extensions"
+    :disabled="disabled"
   />
 </template>
 
@@ -22,9 +23,13 @@ import {
 } from '@codemirror/autocomplete'
 
 const props = withDefaults(
-  defineProps<{ code?: string; callables?: Array<string> | Record<string, string> }>(),
+  defineProps<{
+    code?: string
+    callables?: Array<string> | Record<string, string>
+    disabled?: boolean
+  }>(),
   {
-    code: 'from bgtools import example\nexample()\n',
+    code: '',
     callables: () => []
   }
 )
