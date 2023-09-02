@@ -22,17 +22,13 @@ onMounted(async () => {
   code.value = c.code
 })
 
-watch(code, (o, n) => {
-  console.log(o, n)
-})
-
 let customed: {}
 
 onMounted(async () => {
   customed = await apiCodeTips()
 })
 
-const test = async () => {
+const debug = async () => {
   console.log(await apiTestCode({ code: code.value, name: '' }))
 }
 </script>
@@ -100,7 +96,7 @@ const test = async () => {
       <el-main>
         <el-card>
           <PythonEditor v-model="code" :callables="customed"></PythonEditor>
-          <button @click="test">测试</button>
+          <button @click="debug">测试</button>
         </el-card>
       </el-main>
       <el-footer>后台测试 - 数据修改</el-footer>

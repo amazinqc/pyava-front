@@ -110,7 +110,7 @@ const extensions = [
       },
       /* 自定义变量声明快捷方式 */
       (context: CompletionContext) => {
-        const reg = /^(\s*)((?:\S|(?:\(.+?\))|(?:\{.+?\})|(?:\[.+?\]))+)\.\w+$/
+        const reg = /^(\s*)((?:\S|(?:\(.+?\))|(?:\{.+?\})|(?:\[.+?\]))*)\.\w+$/
         const word = context.matchBefore(reg)
 
         if (word?.from == word?.to && !context.explicit) {
@@ -131,6 +131,36 @@ const extensions = [
         return {
           from: prefix_from + prefix!.length + 1,
           options: [{ label: 'var', type: 'keyword', detail: 'quick variable', apply }],
+          validFor: reg
+        } as CompletionResult
+      },
+      (context: CompletionContext) => {
+        const reg = /^(\s*)((?:\S|(?:\(.+?\))|(?:\{.+?\})|(?:\[.+?\]))*)\.\w+$/
+        const word = context.matchBefore(reg)
+
+        if (word?.from == word?.to && !context.explicit) {
+          return null
+        }
+        const r = reg.exec(word!.text)!
+        const prefix = r[2]
+        const prefix_from = word!.from + r[1].length
+
+        return {
+          from: prefix_from + prefix!.length + 1,
+          options: [
+            {
+              label: 'returned',
+              type: 'variable',
+              detail: 'return value',
+              apply: (vp, cp: Completion, from: number, to: number) => {
+                const repl = `${cp.label} = ${prefix}`
+                vp.dispatch({
+                  changes: { from: prefix_from, to, insert: repl },
+                  selection: { anchor: prefix_from + repl.length }
+                })
+              }
+            }
+          ],
           validFor: reg
         } as CompletionResult
       }

@@ -27,5 +27,5 @@ export const apiUpdateCode = async (code: CodeDraw): Promise<Code> => {
 }
 
 export const apiTestCode = async (code: CodeDraw) => {
-  return await request.post('api/code/exec', code)
+  return await request.post('api/code/debug', code)
 }
