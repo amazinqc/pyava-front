@@ -1,35 +1,98 @@
 <script lang="ts">
 import {
-  User,
-  Crop,
-  EditPen,
-  Management,
-  Promotion,
-  UserFilled,
   CaretBottom,
-  SwitchButton
+  CaretRight,
+  Cellphone,
+  EditPen,
+  Files,
+  Loading,
+  Management,
+  Notebook,
+  SwitchButton,
+  WarningFilled
 } from '@element-plus/icons-vue'
+
 import PythonEditor from '@/components/PythonEditor.vue'
-import { apiCodeTips, apiPyavaCode, apiTestCode } from '@/request/api'
+import {
+  apiCodeHints,
+  apiGetOptions,
+  apiGetServers,
+  apiShowCode,
+  apiTestCode,
+  type Server,
+  type Choice
+} from '@/request/api'
 </script>
 
 <script lang="ts" setup>
-const code = ref(`\
-# loading code from the server...
-`)
-onMounted(async () => {
-  const c = await apiPyavaCode(1)
-  code.value = c.code
-})
+// 是角色uid还是客户端id，默认true: uid
+const uid_or_cid = ref(false)
+const sid = ref<number>()
+const uid = ref<number>()
+const servers = ref<Server[]>()
+
+;(async () => (servers.value = await apiGetServers()))()
+
+const menus = [
+  {
+    option: 0,
+    name: '通用功能',
+    icon: Files,
+    choices: shallowRef<Choice[]>(),
+    loading: false
+  },
+  {
+    option: 1,
+    name: '系统设置',
+    icon: Cellphone,
+    choices: shallowRef<Choice[]>(),
+    loading: false
+  },
+  {
+    option: 2,
+    name: '功能管理',
+    icon: Management,
+    choices: shallowRef<Choice[]>(),
+    loading: false
+  },
+  {
+    option: 3,
+    name: '数据模块',
+    icon: Notebook,
+    choices: shallowRef<Choice[]>(),
+    loading: false
+  }
+]
+const menuOpen = (index: string, path: string[]) => {
+  if (index == '/') {
+    return
+  }
+
+  const optionId = parseInt(index.substring('/option/'.length))
+  const menu = menus[optionId]
+
+  if (menu.choices.value !== undefined || menu.loading) {
+    return
+  }
+  menu.loading = true
+  ;(async () => {
+    const options = await apiGetOptions(optionId)
+    menu.choices.value = options
+    menu.loading = false
+  })()
+}
+
+const devel = ref(0)
+
+/* code */
+const code = ref('# loading code from the server...')
+;(async () => (code.value = (await apiShowCode(1)).code))()
 
 let customed: {}
-
-onMounted(async () => {
-  customed = await apiCodeTips()
-})
+;(async () => (customed = await apiCodeHints()))()
 
 const debug = async () => {
-  console.log(await apiTestCode({ code: code.value, name: '' }))
+  console.log(await apiTestCode(code.value, {}))
 }
 </script>
 
@@ -40,45 +103,84 @@ const debug = async () => {
       <el-menu
         active-text-color="#ffd04b"
         background-color="#232323"
-        :default-active="$route.path"
         text-color="#fff"
+        unique-opened
         router
+        @open="menuOpen"
       >
-        <el-menu-item index="/article/channel">
-          <el-icon><Management /></el-icon>
-          <span>功能类型</span>
+        <el-menu-item index="/" @click="devel++">
+          <el-icon>
+            <el-avatar src="logo.png" :size="18" shape="square" style="background-color: white" />
+          </el-icon>
+          <span>后台测试</span>
         </el-menu-item>
-        <el-menu-item index="/article/manage">
-          <el-icon><Promotion /></el-icon>
-          <span>数据模块</span>
-        </el-menu-item>
-        <el-sub-menu index="/user">
+        <el-sub-menu :index="`/option/${menu.option}`" v-for="menu in menus" :key="menu.option">
           <template #title>
-            <el-icon><UserFilled /></el-icon>
-            <span>角色数据</span>
+            <el-icon><component :is="menu.icon" /></el-icon>
+            <span>{{ menu.name }}</span>
           </template>
-          <el-menu-item index="/user/profile">
-            <el-icon><User /></el-icon>
-            <span>功能1</span>
+          <el-menu-item
+            v-if="menu.choices.value === undefined"
+            index=""
+            style="background-color: darkgray"
+          >
+            <el-icon class="is-loading"><Loading /></el-icon>
+            <span>拼命加载中...</span>
           </el-menu-item>
-          <el-menu-item index="/user/avatar">
-            <el-icon><Crop /></el-icon>
-            <span>功能2</span>
+          <el-menu-item v-else-if="menu.choices.value.length == 0" index="empty" disabled>
+            <el-icon><WarningFilled /></el-icon>
+            <span> 没有数据 </span>
           </el-menu-item>
-          <el-menu-item index="/user/password">
-            <el-icon><EditPen /></el-icon>
-            <span>功能3</span>
+          <el-menu-item
+            v-else
+            v-for="choice in menu.choices.value"
+            :index="`/choice/${choice.type}`"
+            :key="choice.type"
+            v-loading="menu.choices.value === undefined"
+          >
+            <el-icon><CaretRight /></el-icon>
+            <span>{{ choice.desc }}</span>
           </el-menu-item>
         </el-sub-menu>
-        <el-menu-item index="/article/manage">
-          <el-icon><Promotion /></el-icon>
+        <el-menu-item
+          index=""
+          v-show="devel >= 7"
+          @click="devel = 0"
+          style="background-color: rgb(71, 56, 28); color: rgb(236, 96, 96); font-weight: bold"
+        >
+          <el-icon><EditPen /></el-icon>
           <span>开发者模式</span>
         </el-menu-item>
       </el-menu>
     </el-aside>
     <el-container>
       <el-header>
-        <div>黑马：<strong>大事件自己人大事件</strong></div>
+        <div>
+          <label style="margin-left: 2rem">
+            <ElButton link @click="uid_or_cid = !uid_or_cid"
+              >{{ uid_or_cid ? '角色 UID' : '客户端ID' }}：</ElButton
+            >
+            <ElInput
+              v-model="uid"
+              :placeholder="uid_or_cid ? '角色UID' : '终端ID'"
+              :clearable="true"
+              :maxlength="10"
+              :formatter="(v: string) => parseInt(v) || ''"
+              style="max-width: 8rem"
+            />
+          </label>
+          <label style="margin-left: 2rem">
+            <span>服务器：</span>
+            <ElSelect clearable placeholder="选择服务器" v-model="sid">
+              <ElOption
+                v-for="server in servers"
+                :key="server.sid"
+                :label="server.name"
+                :value="server.sid"
+              />
+            </ElSelect>
+          </label>
+        </div>
         <el-dropdown replacement="bottom-end">
           <span class="el-dropdown__box">
             <el-avatar src="logo.png"></el-avatar>
@@ -86,20 +188,19 @@ const debug = async () => {
           </span>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item command="profile" :icon="SwitchButton">
-                重置浏览器数据
-              </el-dropdown-item>
+              <el-dropdown-item command="profile" :icon="SwitchButton"> 重置数据 </el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
       </el-header>
       <el-main>
         <el-card>
+          <!-- <RouterView/> -->
           <PythonEditor v-model="code" :callables="customed"></PythonEditor>
-          <button @click="debug">测试</button>
+          <ElButton @click="debug" type="primary"> 测试 </ElButton>
         </el-card>
       </el-main>
-      <el-footer>后台测试 - 数据修改</el-footer>
+      <el-footer> 后台测试 - 数据修改 </el-footer>
     </el-container>
   </el-container>
 </template>
@@ -146,7 +247,7 @@ const debug = async () => {
 }
 
 .el-aside__logo:hover {
-  animation: rotate 4s ease-in-out;
+  animation: rotate 8s ease-in-out;
 }
 .layout-container .el-menu {
   border-right: none;
@@ -156,6 +257,9 @@ const debug = async () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+.layout-container .el-header {
+  height: 80px;
 }
 .layout-container .el-header .el-dropdown__box {
   display: flex;

@@ -6,8 +6,6 @@
 export {}
 declare global {
   const EffectScope: typeof import('vue')['EffectScope']
-  const apiGetServers: typeof import('./request/api')['apiGetServers']
-  const apiGetTools: typeof import('./request/api/server')['apiGetTools']
   const computed: typeof import('vue')['computed']
   const createApp: typeof import('vue')['createApp']
   const customRef: typeof import('vue')['customRef']
