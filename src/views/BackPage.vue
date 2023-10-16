@@ -19,9 +19,10 @@ import {
   apiGetServers,
   apiShowCode,
   apiTestCode,
-  type Server,
-  type Choice
+  type Choice,
+  type Server
 } from '@/request/api'
+const DEVEL_LIMIT = 7
 </script>
 
 <script lang="ts" setup>
@@ -82,7 +83,7 @@ const menuOpen = (index: string, path: string[]) => {
   })()
 }
 
-const devel = ref(0)
+const call_devel = ref(0)
 
 /* code */
 const code = ref('# loading code from the server...')
@@ -92,7 +93,7 @@ let customed: {}
 ;(async () => (customed = await apiCodeHints()))()
 
 const debug = async () => {
-  console.log(await apiTestCode(code.value, {}))
+  console.log(await apiTestCode(code.value, {}, sid.value))
 }
 </script>
 
@@ -104,11 +105,12 @@ const debug = async () => {
         active-text-color="#ffd04b"
         background-color="#232323"
         text-color="#fff"
+        default-active="/"
         unique-opened
         router
         @open="menuOpen"
       >
-        <el-menu-item index="/" @click="devel++">
+        <el-menu-item index="/" @click="call_devel++">
           <el-icon>
             <el-avatar src="logo.png" :size="18" shape="square" style="background-color: white" />
           </el-icon>
@@ -142,15 +144,17 @@ const debug = async () => {
             <span>{{ choice.desc }}</span>
           </el-menu-item>
         </el-sub-menu>
-        <el-menu-item
-          index=""
-          v-show="devel >= 7"
-          @click="devel = 0"
-          style="background-color: rgb(71, 56, 28); color: rgb(236, 96, 96); font-weight: bold"
-        >
-          <el-icon><EditPen /></el-icon>
-          <span>开发者模式</span>
-        </el-menu-item>
+        <ElLink href="http://127.0.0.1/admin">
+          <el-menu-item
+            class="devel-mod"
+            index=""
+            v-show="call_devel >= DEVEL_LIMIT"
+            @click="call_devel = 0"
+          >
+            <el-icon><EditPen /></el-icon>
+            <span>开发者后台</span>
+          </el-menu-item>
+        </ElLink>
       </el-menu>
     </el-aside>
     <el-container>
@@ -278,5 +282,11 @@ const debug = async () => {
   justify-content: center;
   font-style: 14px;
   color: #666;
+}
+.devel-mod {
+  background-color: rgb(71, 56, 28);
+  color: var(--el-color-danger);
+  font-weight: bold;
+  width: var(--el-aside-width);
 }
 </style>

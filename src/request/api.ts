@@ -35,18 +35,18 @@ export const apiShowCode = async (id: number): Promise<Code> => {
   return await request.get(`api/code/${id}`)
 }
 
-export const apiRunCode = async (id: number, sid: number, args: Args) => {
+export const apiRunCode = async (id: number, sid: number, args?: Args) => {
   return await request.post(`api/code/${id}`, { sid, args })
 }
 
-export const apiTestCode = async (code: string, args: Args) => {
-  return await request.post('api/code/debug', { code, args })
+export const apiTestCode = async (code: string, args?: Args, sid?: number) => {
+  return await request.post('api/code/debug', { code, args, sid })
 }
 
 export const apiGetServers = async (): Promise<Server[]> => {
   return await request.get('api/code/servers')
 }
 
-export const apiGetOptions = async (option: number | null = null): Promise<Choice[]> => {
-  return await request.get(`api/code/options${option === null ? '' : `/${option}`}`)
+export const apiGetOptions = async (option?: number): Promise<Choice[]> => {
+  return await request.get(`api/code/options${option === undefined ? '' : `/${option}`}`)
 }
