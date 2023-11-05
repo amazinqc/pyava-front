@@ -1,52 +1,21 @@
 import request from '@/request'
+import type { Server, Code, CodeChoice, Args, Result } from '@/types'
 
-interface Code extends CodeDraw {
-  readonly id: number
-}
+export default {
+  getServers: (): Promise<Server[]> => request.get('api/code/servers'),
 
-interface CodeDraw {
-  id?: number
-  name: string
-  code: string
-}
+  getCodeView: (id: number): Promise<Code> => request.get(`api/code/${id}`),
 
-interface Args extends Record<string, string | number | object> {}
+  getTypeCodes: (type: number): Promise<Code[]> => request.get(`api/codes/${type}`),
 
-export interface Choice {
-  readonly type: number
-  readonly option: number
-  readonly desc: string
-}
+  getCodeHints: (): Promise<Record<string, string>> => request.get('api/code/hints'),
 
-export interface Server {
-  readonly sid: number
-  readonly name: string
-}
+  getCodeOptions: (option?: number): Promise<CodeChoice[]> =>
+    request.get(`api/code/options${option === undefined ? '' : `/${option}`}`),
 
-export const apiCodeTools = async (): Promise<Code[]> => {
-  return await request.get('api/code/tools')
-}
+  runCode: (id: number, sid: number, args?: Args): Promise<Result> =>
+    request.post(`api/code/${id}`, { sid, args }),
 
-export const apiCodeHints = async (): Promise<Record<string, string>> => {
-  return await request.get('api/code/hints')
-}
-
-export const apiShowCode = async (id: number): Promise<Code> => {
-  return await request.get(`api/code/${id}`)
-}
-
-export const apiRunCode = async (id: number, sid: number, args?: Args) => {
-  return await request.post(`api/code/${id}`, { sid, args })
-}
-
-export const apiTestCode = async (code: string, args?: Args, sid?: number) => {
-  return await request.post('api/code/debug', { code, args, sid })
-}
-
-export const apiGetServers = async (): Promise<Server[]> => {
-  return await request.get('api/code/servers')
-}
-
-export const apiGetOptions = async (option?: number): Promise<Choice[]> => {
-  return await request.get(`api/code/options${option === undefined ? '' : `/${option}`}`)
+  codeTest: (code: string, args?: Args, sid?: number): Promise<Result> =>
+    request.post('api/code/debug', { code, args, sid })
 }

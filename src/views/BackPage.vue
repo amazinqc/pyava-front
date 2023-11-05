@@ -12,17 +12,11 @@ import {
   WarningFilled
 } from '@element-plus/icons-vue'
 
+import api from '@/request/api'
 import PythonEditor from '@/components/PythonEditor.vue'
-import {
-  apiCodeHints,
-  apiGetOptions,
-  apiGetServers,
-  apiShowCode,
-  apiTestCode,
-  type Choice,
-  type Server
-} from '@/request/api'
-const DEVEL_LIMIT = 7
+import type { Server, CodeChoice, Code } from '@/types'
+
+const DEVEL_LIMIT = 9
 </script>
 
 <script lang="ts" setup>
@@ -32,69 +26,111 @@ const sid = ref<number>()
 const uid = ref<number>()
 const servers = ref<Server[]>()
 
-;(async () => (servers.value = await apiGetServers()))()
+api.getServers().then((data) => (servers.value = data))
 
 const menus = [
   {
     option: 0,
     name: '通用功能',
     icon: Files,
-    choices: shallowRef<Choice[]>(),
+    choices: shallowRef<CodeChoice[]>(),
     loading: false
   },
   {
     option: 1,
     name: '系统设置',
     icon: Cellphone,
-    choices: shallowRef<Choice[]>(),
+    choices: shallowRef<CodeChoice[]>(),
     loading: false
   },
   {
     option: 2,
     name: '功能管理',
     icon: Management,
-    choices: shallowRef<Choice[]>(),
+    choices: shallowRef<CodeChoice[]>(),
     loading: false
   },
   {
     option: 3,
     name: '数据模块',
     icon: Notebook,
-    choices: shallowRef<Choice[]>(),
+    choices: shallowRef<CodeChoice[]>(),
     loading: false
   }
 ]
+
 const menuOpen = (index: string, path: string[]) => {
+  develReset()
   if (index == '/') {
     return
   }
+  const matches = index.match(/^\/option\/(\d+)$/)
 
-  const optionId = parseInt(index.substring('/option/'.length))
-  const menu = menus[optionId]
+  if (matches) {
+    const optionId = parseInt(matches[1])
+    const menu = menus[optionId]
+    if (menu.choices.value !== undefined || menu.loading) {
+      return
+    }
+    menu.loading = true
+    api.getCodeOptions(optionId).then((data) => {
+      menu.choices.value = data
+      menu.loading = false
+    })
+  }
+}
 
-  if (menu.choices.value !== undefined || menu.loading) {
+/* code编辑器 */
+const code = ref('# loading code from the server...')
+api.getCodeView(1).then((data) => (code.value = data.code))
+let customed: {}
+api.getCodeHints().then((data) => (customed = data))
+const debug = () => api.codeTest(code.value, {}, sid.value).then(console.log)
+
+/* 功能列表 */
+let tools = shallowRef<Code[]>()
+const selectOption = (index: string, path: string[]) => {
+  if (index == '/') {
+    tools.value = undefined
     return
   }
-  menu.loading = true
-  ;(async () => {
-    const options = await apiGetOptions(optionId)
-    menu.choices.value = options
-    menu.loading = false
-  })()
+  develReset()
+  const matches = index.match(/^\/choice\/(\d+)$/)
+
+  if (matches) {
+    const codeType = parseInt(matches[1])
+    api.getTypeCodes(codeType).then((data) => console.log((tools.value = data)))
+  }
 }
 
-const call_devel = ref(0)
-
-/* code */
-const code = ref('# loading code from the server...')
-;(async () => (code.value = (await apiShowCode(1)).code))()
-
-let customed: {}
-;(async () => (customed = await apiCodeHints()))()
-
-const debug = async () => {
-  console.log(await apiTestCode(code.value, {}, sid.value))
+/* 后台入口 */
+let last = 0
+const devel_hold = ref(0)
+const develUp = () => {
+  let hold = devel_hold.value + 1
+  const now = performance.now()
+  if (now - last > DEVEL_LIMIT * 256) {
+    hold = 1
+    last = performance.now()
+  }
+  if (hold > DEVEL_LIMIT) {
+    develReset()
+    develUp()
+  } else {
+    devel_hold.value = hold
+  }
 }
+const develReset = () => (last = devel_hold.value = 0)
+const editor = computed(() => devel_hold.value >= DEVEL_LIMIT)
+
+const innerHeight = ref(window.innerHeight)
+const resize = () => {
+  console.log((innerHeight.value = window.innerHeight))
+}
+window.addEventListener('resize', resize)
+resize()
+
+const loader = ref(false)
 </script>
 
 <template>
@@ -106,15 +142,15 @@ const debug = async () => {
         background-color="#232323"
         text-color="#fff"
         default-active="/"
-        unique-opened
-        router
         @open="menuOpen"
+        @select="selectOption"
+        @close="develReset"
       >
-        <el-menu-item index="/" @click="call_devel++">
+        <el-menu-item index="/" @click="develUp">
           <el-icon>
             <el-avatar src="logo.png" :size="18" shape="square" style="background-color: white" />
           </el-icon>
-          <span>后台测试</span>
+          <span style="user-select: none">后台测试</span>
         </el-menu-item>
         <el-sub-menu :index="`/option/${menu.option}`" v-for="menu in menus" :key="menu.option">
           <template #title>
@@ -138,23 +174,17 @@ const debug = async () => {
             v-for="choice in menu.choices.value"
             :index="`/choice/${choice.type}`"
             :key="choice.type"
-            v-loading="menu.choices.value === undefined"
           >
             <el-icon><CaretRight /></el-icon>
             <span>{{ choice.desc }}</span>
           </el-menu-item>
         </el-sub-menu>
-        <ElLink href="http://127.0.0.1/admin">
-          <el-menu-item
-            class="devel-mod"
-            index=""
-            v-show="call_devel >= DEVEL_LIMIT"
-            @click="call_devel = 0"
-          >
+        <el-link v-if="editor" href="http://127.0.0.1/admin" target="blank">
+          <el-menu-item class="devel-mod" index="" @click="develReset">
             <el-icon><EditPen /></el-icon>
             <span>开发者后台</span>
           </el-menu-item>
-        </ElLink>
+        </el-link>
       </el-menu>
     </el-aside>
     <el-container>
@@ -192,19 +222,58 @@ const debug = async () => {
           </span>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item command="profile" :icon="SwitchButton"> 重置数据 </el-dropdown-item>
+              <el-dropdown-item
+                command="profile"
+                :icon="SwitchButton"
+                @click="console.log('重置数据')"
+              >
+                重置数据
+              </el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
       </el-header>
       <el-main>
-        <el-card>
+        <el-card shadow="never">
           <!-- <RouterView/> -->
-          <PythonEditor v-model="code" :callables="customed"></PythonEditor>
-          <ElButton @click="debug" type="primary"> 测试 </ElButton>
+          <el-drawer :model-value="editor" size="50%" :show-close="false">
+            <template #header="{ titleId, titleClass }">
+              <h4 :id="titleId" :class="titleClass">代码调试工作台</h4>
+              <el-link
+                v-if="editor"
+                href="http://127.0.0.1/admin"
+                target="blank"
+                @click="develReset"
+                type="info"
+              >
+                <el-icon><EditPen /></el-icon>
+                <span>开发者后台</span>
+              </el-link>
+            </template>
+            <PythonEditor v-model="code" :callables="customed"></PythonEditor>
+            <ElButton @click="debug" type="primary"> 测试 </ElButton>
+          </el-drawer>
+          <el-scrollbar :max-height="innerHeight - 220">
+            <el-space direction="vertical" alignment="left" size="large" fill>
+              <InteractiveWindow
+                v-for="tool in tools"
+                :key="tool.id"
+                :name="tool.name"
+                :args="tool.args"
+              />
+            </el-space>
+          </el-scrollbar>
+          <!-- <el-empty v-if="!editor && (!tools || tools.length === 0)" description="空空如也" /> -->
+          <el-button @click="loader = !loader">点击</el-button>
+          <div style="width: 30px; height: 30px; border: 1px solid black;">
+            <LoadingStatus :status="loader ? 'loading' : 'success'"/>
+          </div>
+          <div style="width: 30px; height: 30px; border: 1px solid black;">
+            <LoadingStatus :status="loader ? 'loading' : 'error'"/>
+          </div>
         </el-card>
       </el-main>
-      <el-footer> 后台测试 - 数据修改 </el-footer>
+      <el-footer> 后台测试 - 数据修改 Copyright © </el-footer>
     </el-container>
   </el-container>
 </template>
@@ -215,7 +284,7 @@ const debug = async () => {
 }
 .el-card {
   min-height: 100%;
-  overflow: hidden;
+  /* overflow: hidden; */
 }
 
 .layout-container {

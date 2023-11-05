@@ -3,7 +3,7 @@
     :model-value="code"
     @update:model-value="$emit('update:modelVaule', $event)"
     placeholder="Code going on here..."
-    :style="{ height: '400px', width: '600px', paddingRight: '1em' }"
+    :style="{ height: '50%', width: '80%', paddingRight: '1em' }"
     :indent-with-tab="true"
     :tabSize="2"
     :extensions="extensions"
