@@ -14,16 +14,16 @@ import {
 
 import api from '@/request/api'
 import PythonEditor from '@/components/PythonEditor.vue'
-import type { Server, CodeChoice, Code } from '@/types'
+import type { Server, CodeChoice, Code, BaseData } from '@/types'
 
 const DEVEL_LIMIT = 9
 </script>
 
 <script lang="ts" setup>
 // 是角色uid还是客户端id，默认true: uid
-const uid_or_cid = ref(false)
-const sid = ref<number>()
-const uid = ref<number>()
+const uid_or_cid = ref<boolean>(false)
+const baseData = reactive<BaseData>({uid: '', cid: '', sid: ''})
+
 const servers = ref<Server[]>()
 
 api.getServers().then((data) => (servers.value = data))
@@ -85,7 +85,7 @@ const code = ref('# loading code from the server...')
 api.getCodeView(1).then((data) => (code.value = data.code))
 let customed: {}
 api.getCodeHints().then((data) => (customed = data))
-const debug = () => api.codeTest(code.value, {}, sid.value).then(console.log)
+const debug = () => api.codeTest(code.value, baseData).then(console.log)
 
 /* 功能列表 */
 let tools = shallowRef<Code[]>()
@@ -191,21 +191,30 @@ const loader = ref(false)
       <el-header>
         <div>
           <label style="margin-left: 2rem">
-            <ElButton link @click="uid_or_cid = !uid_or_cid"
-              >{{ uid_or_cid ? '角色 UID' : '客户端ID' }}：</ElButton
-            >
+            <ElButton link @click="uid_or_cid = !uid_or_cid">
+              {{ uid_or_cid ? '角色 UID' : '客户端ID' }}：
+            </ElButton>
+
             <ElInput
-              v-model="uid"
-              :placeholder="uid_or_cid ? '角色UID' : '终端ID'"
+              v-if="uid_or_cid"
+              v-model.number="baseData.uid"
+              placeholder="角色UID"
               :clearable="true"
               :maxlength="10"
-              :formatter="(v: string) => parseInt(v) || ''"
+              style="max-width: 8rem"
+            />
+            <ElInput
+              v-else
+              v-model.number="baseData.cid"
+              placeholder="终端ID"
+              :clearable="true"
+              :maxlength="10"
               style="max-width: 8rem"
             />
           </label>
           <label style="margin-left: 2rem">
             <span>服务器：</span>
-            <ElSelect clearable placeholder="选择服务器" v-model="sid">
+            <ElSelect clearable placeholder="选择服务器" v-model="baseData.sid">
               <ElOption
                 v-for="server in servers"
                 :key="server.sid"
@@ -258,18 +267,19 @@ const loader = ref(false)
               <InteractiveWindow
                 v-for="tool in tools"
                 :key="tool.id"
-                :name="tool.name"
-                :args="tool.args"
+                :tool="tool"
+                :base-data="baseData"
               />
             </el-space>
           </el-scrollbar>
           <!-- <el-empty v-if="!editor && (!tools || tools.length === 0)" description="空空如也" /> -->
-          <el-button @click="loader = !loader">点击</el-button>
-          <div style="width: 30px; height: 30px; border: 1px solid black;">
-            <LoadingStatus :status="loader ? 'loading' : 'success'"/>
+          <el-button @click="loader = !loader;console.log(baseData)" >点击</el-button
+          >
+          <div style="width: 30px; height: 30px; border: 1px solid black">
+            <LoadingStatus :status="loader ? 'loading' : 'success'" />
           </div>
-          <div style="width: 30px; height: 30px; border: 1px solid black;">
-            <LoadingStatus :status="loader ? 'loading' : 'error'"/>
+          <div style="width: 30px; height: 30px; border: 1px solid black">
+            <LoadingStatus :status="loader ? 'loading' : 'error'" />
           </div>
         </el-card>
       </el-main>

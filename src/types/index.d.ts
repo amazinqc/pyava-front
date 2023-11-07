@@ -46,3 +46,11 @@ export declare interface Code {
  * 代码执行结果
  */
 export type Result = any
+
+
+export declare interface BaseData {
+  uid?: number | string
+  cid?: number | string
+  sid?: number | string
+  [prop: string]: number | string
+}

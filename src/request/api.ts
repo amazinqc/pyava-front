@@ -1,5 +1,5 @@
 import request from '@/request'
-import type { Server, Code, CodeChoice, Args, Result } from '@/types'
+import type { Server, Code, CodeChoice, Args, Result, BaseData } from '@/types'
 
 export default {
   getServers: (): Promise<Server[]> => request.get('api/code/servers'),
@@ -13,9 +13,9 @@ export default {
   getCodeOptions: (option?: number): Promise<CodeChoice[]> =>
     request.get(`api/code/options${option === undefined ? '' : `/${option}`}`),
 
-  runCode: (id: number, sid: number, args?: Args): Promise<Result> =>
-    request.post(`api/code/${id}`, { sid, args }),
+  runCode: (id: number, base: BaseData, args?: Args): Promise<Result> =>
+    request.post(`api/code/${id}`, { args, ...base }),
 
-  codeTest: (code: string, args?: Args, sid?: number): Promise<Result> =>
-    request.post('api/code/debug', { code, args, sid })
+  codeTest: (code: string, base: BaseData, args?: Args): Promise<Result> =>
+    request.post('api/code/debug', { code, args, ...base })
 }
