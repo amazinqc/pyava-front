@@ -22,7 +22,7 @@ const DEVEL_LIMIT = 9
 <script lang="ts" setup>
 // 是角色uid还是客户端id，默认true: uid
 const uid_or_cid = ref<boolean>(false)
-const baseData = reactive<BaseData>({uid: '', cid: '', sid: ''})
+const baseData = reactive<BaseData>({ uid: '', cid: '', sid: '' })
 
 const servers = ref<Server[]>()
 
@@ -189,41 +189,39 @@ const loader = ref(false)
     </el-aside>
     <el-container>
       <el-header>
-        <div>
-          <label style="margin-left: 2rem">
-            <ElButton link @click="uid_or_cid = !uid_or_cid">
-              {{ uid_or_cid ? '角色 UID' : '客户端ID' }}：
-            </ElButton>
+        <label style="margin-left: 2rem">
+          <ElButton link @click="uid_or_cid = !uid_or_cid">
+            {{ uid_or_cid ? '角色 UID' : '客户端ID' }}：
+          </ElButton>
 
-            <ElInput
-              v-if="uid_or_cid"
-              v-model.number="baseData.uid"
-              placeholder="角色UID"
-              :clearable="true"
-              :maxlength="10"
-              style="max-width: 8rem"
+          <ElInput
+            v-if="uid_or_cid"
+            v-model.number="baseData.uid"
+            placeholder="角色UID"
+            :clearable="true"
+            :maxlength="10"
+            style="max-width: 8rem"
+          />
+          <ElInput
+            v-else
+            v-model.number="baseData.cid"
+            placeholder="终端ID"
+            :clearable="true"
+            :maxlength="10"
+            style="max-width: 8rem"
+          />
+        </label>
+        <label style="margin-left: 2rem">
+          <span>服务器：</span>
+          <ElSelect clearable placeholder="选择服务器" v-model="baseData.sid">
+            <ElOption
+              v-for="server in servers"
+              :key="server.sid"
+              :label="server.name"
+              :value="server.sid"
             />
-            <ElInput
-              v-else
-              v-model.number="baseData.cid"
-              placeholder="终端ID"
-              :clearable="true"
-              :maxlength="10"
-              style="max-width: 8rem"
-            />
-          </label>
-          <label style="margin-left: 2rem">
-            <span>服务器：</span>
-            <ElSelect clearable placeholder="选择服务器" v-model="baseData.sid">
-              <ElOption
-                v-for="server in servers"
-                :key="server.sid"
-                :label="server.name"
-                :value="server.sid"
-              />
-            </ElSelect>
-          </label>
-        </div>
+          </ElSelect>
+        </label>
         <el-dropdown replacement="bottom-end">
           <span class="el-dropdown__box">
             <el-avatar src="logo.png"></el-avatar>
@@ -263,7 +261,7 @@ const loader = ref(false)
             <ElButton @click="debug" type="primary"> 测试 </ElButton>
           </el-drawer>
           <el-scrollbar :max-height="innerHeight - 220">
-            <el-space direction="vertical" alignment="left" size="large" fill>
+            <el-space direction="vertical" alignment="left" size="large" style="width: 100%" fill>
               <InteractiveWindow
                 v-for="tool in tools"
                 :key="tool.id"
@@ -272,9 +270,8 @@ const loader = ref(false)
               />
             </el-space>
           </el-scrollbar>
-          <!-- <el-empty v-if="!editor && (!tools || tools.length === 0)" description="空空如也" /> -->
-          <el-button @click="loader = !loader;console.log(baseData)" >点击</el-button
-          >
+
+          <el-button @click="loader = !loader">点击</el-button>
           <div style="width: 30px; height: 30px; border: 1px solid black">
             <LoadingStatus :status="loader ? 'loading' : 'success'" />
           </div>

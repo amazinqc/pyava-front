@@ -1,5 +1,5 @@
 <template>
-  <el-form ref="formRef" :model="forms" class="demo-ruleForm" label-width="120px">
+  <el-form ref="formRef" :model="forms" label-width="120px">
     <el-card shadow="hover">
       <template #header>
         <el-row :gutter="16">
@@ -7,13 +7,19 @@
           <el-col :span="12">
             <el-space wrap>
               <el-button type="primary" @click="submitForm(formRef)"> 执行 </el-button>
-              <el-button v-if="tool.args.length > 0" @click="resetForm(formRef)"> 重置 </el-button>
               <el-button
-                v-if="result.status != undefined"
                 @click="result.show = !result.show"
-                :loading="result.status == 'loading'"
+                :loading="result.status === 'loading'"
+                :disabled="result.status === undefined"
+                :type="result.show ? 'info' : ''"
               >
-                查看
+                {{ result.show ? '隐藏' : '查看'}}
+                <template #icon>
+                  <Setting />
+                </template>
+              </el-button>
+              <el-button v-if="tool.args.length > 0" @click="resetForm(formRef)">
+                重置
               </el-button>
             </el-space>
           </el-col>
@@ -39,7 +45,7 @@
         </el-tooltip>
       </el-space>
       <el-divider />
-      <div v-show="result.show && result.status != 'loading'">
+      <div v-if="result.show" v-show="result.status != 'loading'">
         {{ (result.status == 'success' ? '结果：' : '异常：') + result.result }}
       </div>
     </el-card>
@@ -51,6 +57,7 @@ import { reactive, ref } from 'vue'
 import type { FormInstance } from 'element-plus'
 import api from '@/request/api'
 import type { Code, BaseData } from '@/types'
+import { Setting } from '@element-plus/icons-vue';
 
 const props = defineProps<{ tool: Code; baseData: BaseData }>()
 
