@@ -6,21 +6,27 @@
           <el-col :span="12"> {{ tool.name }} </el-col>
           <el-col :span="12">
             <el-space wrap>
-              <el-button type="primary" @click="submitForm(formRef)"> 执行 </el-button>
+              <el-button
+                type="primary"
+                @click="submitForm(formRef)"
+                :disabled="result.status === 'loading'"
+              >
+                执行
+              </el-button>
               <el-button
                 @click="result.show = !result.show"
                 :loading="result.status === 'loading'"
                 :disabled="result.status === undefined"
-                :type="result.show ? 'info' : ''"
+                :type="showButtonColorType()"
               >
-                {{ result.show ? '隐藏' : '查看'}}
+                {{ result.show ? '隐藏' : '查看' }}
                 <template #icon>
-                  <Setting />
+                  <Warning v-if="result.status === 'error'" />
+                  <CircleCheck v-else-if="result.status === 'success'" />
+                  <Setting v-else />
                 </template>
               </el-button>
-              <el-button v-if="tool.args.length > 0" @click="resetForm(formRef)">
-                重置
-              </el-button>
+              <el-button v-if="tool.args.length > 0" @click="resetForm(formRef)"> 重置 </el-button>
             </el-space>
           </el-col>
         </el-row>
@@ -40,24 +46,30 @@
               message: `参数<${arg.desc || arg.name}>不能为空`
             }"
           >
-            <el-input v-model="forms[arg.name]" :placeholder="arg.desc" />
+            <el-input
+              v-if="arg.type === 'int'"
+              v-model.number="forms[arg.name]"
+              :parser="numeric"
+              :formatter="numeric"
+              :placeholder="arg.desc"
+            />
+            <el-input v-else v-model="forms[arg.name]" :placeholder="arg.desc" />
           </el-form-item>
         </el-tooltip>
       </el-space>
-      <el-divider />
-      <div v-if="result.show" v-show="result.status != 'loading'">
-        {{ (result.status == 'success' ? '结果：' : '异常：') + result.result }}
-      </div>
+      <ViewBoard :board="result" />
     </el-card>
   </el-form>
 </template>
 
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
-import type { FormInstance } from 'element-plus'
+import { ElMessage, type FormInstance } from 'element-plus'
 import api from '@/request/api'
-import type { Code, BaseData } from '@/types'
-import { Setting } from '@element-plus/icons-vue';
+import type { Code, BaseData, Viewboard } from '@/types'
+import { CircleCheck, Setting, Warning } from '@element-plus/icons-vue'
+import ViewBoard from '@/components/view/ViewBoard.vue'
+import { numeric } from '@/utils/Utils'
 
 const props = defineProps<{ tool: Code; baseData: BaseData }>()
 
@@ -71,7 +83,7 @@ for (const arg of props.tool.args) {
 }
 
 const forms = reactive(params)
-const result = reactive<{ status?: 'loading' | 'success' | 'error'; show: boolean; result?: any }>({
+const result = reactive<Viewboard>({
   show: false
 })
 
@@ -82,8 +94,9 @@ const submitForm = async (formEl: FormInstance | undefined) => {
     return
   }
   for (const arg of props.tool.args) {
+    // 属于共用数据，但该共用数据不真
     if (arg.name in props.baseData && !props.baseData[arg.name]) {
-      console.log({ ...props.baseData })
+      ElMessage.warning('请填写' + arg.name + '信息')
       return
     }
   }
@@ -112,5 +125,19 @@ const resetForm = (formEl: FormInstance | undefined) => {
   result.show = false
   delete result.result
   delete result.status
+}
+
+function showButtonColorType() {
+  if (result.show) {
+    return 'info'
+  }
+  switch (result.status) {
+    case 'success':
+      return 'success'
+    case 'error':
+      return 'warning'
+    default:
+      return 'default'
+  }
 }
 </script>

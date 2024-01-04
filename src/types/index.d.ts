@@ -47,10 +47,34 @@ export declare interface Code {
  */
 export type Result = any
 
-
+/**
+ * 全局共用的基础数据
+ */
 export declare interface BaseData {
+  /**
+   * uid是否原始值(uid/cid)
+   */
+  _raw: boolean
   uid?: number | string
   cid?: number | string
   sid?: number | string
-  [prop: string]: number | string
+  [prop: string]: number | string | boolean
+}
+
+/**
+ * 结果展示布局
+ */
+export declare interface Viewboard {
+  /**
+   * 是否展示
+   */
+  show: boolean
+  /**
+   * 展示状态
+   */
+  status?: 'loading' | 'success' | 'error'
+  /**
+   * 展示结果
+   */
+  result?: any
 }

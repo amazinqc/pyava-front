@@ -15,14 +15,13 @@ import {
 import api from '@/request/api'
 import PythonEditor from '@/components/PythonEditor.vue'
 import type { Server, CodeChoice, Code, BaseData } from '@/types'
+import { numeric } from '@/utils/Utils'
 
 const DEVEL_LIMIT = 9
 </script>
 
 <script lang="ts" setup>
-// 是角色uid还是客户端id，默认true: uid
-const uid_or_cid = ref<boolean>(false)
-const baseData = reactive<BaseData>({ uid: '', cid: '', sid: '' })
+const baseData = reactive<BaseData>({ _raw: true, uid: '', cid: '', sid: '' })
 
 const servers = ref<Server[]>()
 
@@ -190,37 +189,41 @@ const loader = ref(false)
     <el-container>
       <el-header>
         <label style="margin-left: 2rem">
-          <ElButton link @click="uid_or_cid = !uid_or_cid">
-            {{ uid_or_cid ? '角色 UID' : '客户端ID' }}：
-          </ElButton>
+          <el-button link @click="baseData._raw = !baseData._raw">
+            {{ baseData._raw ? '角色 UID' : '客户端ID' }}：
+          </el-button>
 
-          <ElInput
-            v-if="uid_or_cid"
+          <el-input
+            v-if="baseData._raw"
             v-model.number="baseData.uid"
             placeholder="角色UID"
             :clearable="true"
             :maxlength="10"
+            :formatter="numeric"
+            :parser="numeric"
             style="max-width: 8rem"
           />
-          <ElInput
+          <el-input
             v-else
             v-model.number="baseData.cid"
             placeholder="终端ID"
             :clearable="true"
             :maxlength="10"
+            :formatter="numeric"
+            :parser="numeric"
             style="max-width: 8rem"
           />
         </label>
         <label style="margin-left: 2rem">
-          <span>服务器：</span>
-          <ElSelect clearable placeholder="选择服务器" v-model="baseData.sid">
-            <ElOption
+          <el-text size="large">服务器：</el-text>
+          <el-select clearable placeholder="选择服务器" v-model="baseData.sid">
+            <el-option
               v-for="server in servers"
               :key="server.sid"
               :label="server.name"
               :value="server.sid"
             />
-          </ElSelect>
+          </el-select>
         </label>
         <el-dropdown replacement="bottom-end">
           <span class="el-dropdown__box">
@@ -262,12 +265,7 @@ const loader = ref(false)
           </el-drawer>
           <el-scrollbar :max-height="innerHeight - 220">
             <el-space direction="vertical" alignment="left" size="large" style="width: 100%" fill>
-              <InteractiveWindow
-                v-for="tool in tools"
-                :key="tool.id"
-                :tool="tool"
-                :base-data="baseData"
-              />
+              <ToolItem v-for="tool in tools" :key="tool.id" :tool="tool" :base-data="baseData" />
             </el-space>
           </el-scrollbar>
 
