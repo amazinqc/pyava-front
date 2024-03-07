@@ -16,6 +16,7 @@ import api from '@/request/api'
 import PythonEditor from '@/components/PythonEditor.vue'
 import type { Server, CodeChoice, Code, BaseData } from '@/types'
 import { numeric } from '@/utils/Utils'
+import { ElMessage } from 'element-plus'
 
 const DEVEL_LIMIT = 9
 </script>
@@ -98,7 +99,7 @@ const selectOption = (index: string, path: string[]) => {
 
   if (matches) {
     const codeType = parseInt(matches[1])
-    api.getTypeCodes(codeType).then((data) => console.log((tools.value = data)))
+    api.getTypeCodes(codeType).then((data) => tools.value = data)
   }
 }
 
@@ -124,12 +125,13 @@ const editor = computed(() => devel_hold.value >= DEVEL_LIMIT)
 
 const innerHeight = ref(window.innerHeight)
 const resize = () => {
-  console.log((innerHeight.value = window.innerHeight))
+  // - header - margin - padding - footer
+  innerHeight.value = window.innerHeight - 80 - 20 * 2 - 20 * 2 - 60
 }
 window.addEventListener('resize', resize)
 resize()
 
-const loader = ref(false)
+// const loader = ref(false)
 </script>
 
 <template>
@@ -147,7 +149,7 @@ const loader = ref(false)
       >
         <el-menu-item index="/" @click="develUp">
           <el-icon>
-            <el-avatar src="logo.png" :size="18" shape="square" style="background-color: white" />
+            <el-avatar src="/static/logo.png" :size="18" shape="square" style="background-color: white" />
           </el-icon>
           <span style="user-select: none">后台测试</span>
         </el-menu-item>
@@ -178,7 +180,7 @@ const loader = ref(false)
             <span>{{ choice.desc }}</span>
           </el-menu-item>
         </el-sub-menu>
-        <el-link v-if="editor" href="http://127.0.0.1/admin" target="blank">
+        <el-link v-if="editor" href="/admin" target="blank">
           <el-menu-item class="devel-mod" index="" @click="develReset">
             <el-icon><EditPen /></el-icon>
             <span>开发者后台</span>
@@ -227,7 +229,7 @@ const loader = ref(false)
         </label>
         <el-dropdown replacement="bottom-end">
           <span class="el-dropdown__box">
-            <el-avatar src="logo.png"></el-avatar>
+            <el-avatar src="/static/logo.png"></el-avatar>
             <el-icon><CaretBottom /></el-icon>
           </span>
           <template #dropdown>
@@ -235,7 +237,7 @@ const loader = ref(false)
               <el-dropdown-item
                 command="profile"
                 :icon="SwitchButton"
-                @click="console.log('重置数据')"
+                @click="ElMessage.info('正在开发中...')"
               >
                 重置数据
               </el-dropdown-item>
@@ -251,7 +253,7 @@ const loader = ref(false)
               <h4 :id="titleId" :class="titleClass">代码调试工作台</h4>
               <el-link
                 v-if="editor"
-                href="http://127.0.0.1/admin"
+                href="/admin"
                 target="blank"
                 @click="develReset"
                 type="info"
@@ -263,12 +265,14 @@ const loader = ref(false)
             <PythonEditor v-model="code" :callables="customed"></PythonEditor>
             <ElButton @click="debug" type="primary"> 测试 </ElButton>
           </el-drawer>
-          <el-scrollbar :max-height="innerHeight - 220">
-            <el-space direction="vertical" alignment="left" size="large" style="width: 100%" fill>
+          <el-scrollbar :height="innerHeight">
+            <el-space v-if="tools && tools.length > 0" direction="vertical" alignment="left" size="large" style="width: 100%" fill>
               <ToolItem v-for="tool in tools" :key="tool.id" :tool="tool" :base-data="baseData" />
             </el-space>
+            <el-empty v-else description="空空如也"> </el-empty>
           </el-scrollbar>
 
+          <!--
           <el-button @click="loader = !loader">点击</el-button>
           <div style="width: 30px; height: 30px; border: 1px solid black">
             <LoadingStatus :status="loader ? 'loading' : 'success'" />
@@ -276,6 +280,7 @@ const loader = ref(false)
           <div style="width: 30px; height: 30px; border: 1px solid black">
             <LoadingStatus :status="loader ? 'loading' : 'error'" />
           </div>
+          -->
         </el-card>
       </el-main>
       <el-footer> 后台测试 - 数据修改 Copyright © </el-footer>
@@ -304,7 +309,7 @@ const loader = ref(false)
 
 .layout-container .el-aside .el-aside__logo {
   height: 120px;
-  background: url('logo.png') no-repeat center / 120px auto;
+  background: url('/static/logo.png') no-repeat center / 120px auto;
   opacity: 0.5;
 }
 @keyframes rotate {

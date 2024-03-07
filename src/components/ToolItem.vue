@@ -6,19 +6,11 @@
           <el-col :span="12"> {{ tool.name }} </el-col>
           <el-col :span="12">
             <el-space wrap>
-              <el-button
-                type="primary"
-                @click="submitForm(formRef)"
-                :disabled="result.status === 'loading'"
-              >
+              <el-button type="primary" @click="submitForm(formRef)" :disabled="result.status === 'loading'">
                 执行
               </el-button>
-              <el-button
-                @click="result.show = !result.show"
-                :loading="result.status === 'loading'"
-                :disabled="result.status === undefined"
-                :type="showButtonColorType()"
-              >
+              <el-button @click="result.show = !result.show" :loading="result.status === 'loading'"
+                :disabled="result.status === undefined" :type="showButtonColorType()">
                 {{ result.show ? '隐藏' : '查看' }}
                 <template #icon>
                   <Warning v-if="result.status === 'error'" />
@@ -33,25 +25,19 @@
       </template>
 
       <el-space wrap>
-        <el-tooltip
-          v-for="arg in tool.args.filter((v) => !(v.name in baseData))"
-          :key="arg.name"
-          :content="arg.desc || arg.name"
-        >
-          <el-form-item
-            :label="arg.name"
-            :prop="arg.name"
-            :rules="{
-              required: arg.default == undefined,
-              message: `参数<${arg.desc || arg.name}>不能为空`
-            }"
-          >
-            <el-input
-              v-if="arg.type === 'int'"
-              v-model.number="forms[arg.name]"
-              :parser="numeric"
-              :formatter="numeric"
-              :placeholder="arg.desc"
+        <el-tooltip v-for="arg in tool.args.filter((v) => !(v.name in baseData))" :key="arg.name"
+          :content="arg.desc || arg.name">
+          <el-form-item :label="arg.name" :prop="arg.name" :rules="{
+            required: arg.default == undefined,
+            message: `参数<${arg.desc || arg.name}>不能为空`
+          }">
+            <el-input v-if="arg.type === 'int'" v-model.number="forms[arg.name]" :parser="numeric" :formatter="numeric"
+              :placeholder="arg.desc" />
+            <el-switch v-else-if="arg.type === 'bool'" v-model="forms[arg.name]"
+              inline-prompt
+              :active-icon="Select"
+              :inactive-icon="CloseBold"
+              style="--el-switch-on-color:#13ce66;--el-switch-off-color:#ff4949"
             />
             <el-input v-else v-model="forms[arg.name]" :placeholder="arg.desc" />
           </el-form-item>
@@ -63,13 +49,13 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, ref } from 'vue'
-import { ElMessage, type FormInstance } from 'element-plus'
-import api from '@/request/api'
-import type { Code, BaseData, Viewboard } from '@/types'
-import { CircleCheck, Setting, Warning } from '@element-plus/icons-vue'
 import ViewBoard from '@/components/view/ViewBoard.vue'
+import api from '@/request/api'
+import type { BaseData, Code, Viewboard } from '@/types'
 import { numeric } from '@/utils/Utils'
+import { Select, CircleCheck, CloseBold, Setting, Warning } from '@element-plus/icons-vue'
+import { ElMessage, type FormInstance } from 'element-plus'
+import { reactive, ref } from 'vue'
 
 const props = defineProps<{ tool: Code; baseData: BaseData }>()
 

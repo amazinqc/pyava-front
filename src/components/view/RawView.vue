@@ -1,6 +1,6 @@
 <template>
-    {{ (status ? '结果：' : '异常：') + JSON.stringify(result) }}
+    {{ prefix + JSON.stringify(data) }}
 </template>
 <script setup lang="ts">
-defineProps<{status?:boolean, result: any}>()
+defineProps<{ prefix: string, data: any }>()
 </script>

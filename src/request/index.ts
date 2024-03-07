@@ -20,12 +20,14 @@ instance.interceptors.response.use(
     if (resp.data.code === 200) {
       return resp.data.data
     }
-    ElMessage.error(resp.data.message || '数据异常')
-    return Promise.reject(resp.data)
+    const message = resp.data.message || '服务异常'
+    ElMessage.error(message)
+    return Promise.reject(resp.data.message)
   },
   (err) => {
-    ElMessage.error(err.message || err?.response.data.message || '服务异常')
-    return Promise.reject(err)
+    const message = err.message || err?.response.data.message || '通信异常'
+    ElMessage.error(message)
+    return Promise.reject(message)
   }
 )
 

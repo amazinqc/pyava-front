@@ -37,5 +37,7 @@ export default defineConfig({
       }
     }
   },
-  build: {}
+  build: {
+    "assetsDir": "static/assets"
+  }
 })
