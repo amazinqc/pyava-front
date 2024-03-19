@@ -138,55 +138,52 @@ resize()
   <el-container class="layout-container">
     <el-aside width="200px">
       <div class="el-aside__logo"></div>
-      <el-menu
-        active-text-color="#ffd04b"
-        background-color="#232323"
-        text-color="#fff"
-        default-active="/"
-        @open="menuOpen"
-        @select="selectOption"
-        @close="develReset"
-      >
-        <el-menu-item index="/" @click="develUp">
-          <el-icon>
-            <el-avatar src="/static/logo.png" :size="18" shape="square" style="background-color: white" />
-          </el-icon>
-          <span style="user-select: none">后台测试</span>
-        </el-menu-item>
-        <el-sub-menu :index="`/option/${menu.option}`" v-for="menu in menus" :key="menu.option">
-          <template #title>
-            <el-icon><component :is="menu.icon" /></el-icon>
-            <span>{{ menu.name }}</span>
-          </template>
-          <el-menu-item
-            v-if="menu.choices.value === undefined"
-            index=""
-            style="background-color: darkgray"
-          >
-            <el-icon class="is-loading"><Loading /></el-icon>
-            <span>拼命加载中...</span>
+      <el-scrollbar>
+        <el-menu active-text-color="#ffd04b" background-color="#232323" text-color="#fff" default-active="/"
+          @open="menuOpen" @select="selectOption" @close="develReset">
+          <el-menu-item index="/" @click="develUp">
+            <el-icon>
+              <el-avatar src="/static/logo.png" :size="18" shape="square" style="background-color: white" />
+            </el-icon>
+            <span style="user-select: none">后台测试</span>
           </el-menu-item>
-          <el-menu-item v-else-if="menu.choices.value.length == 0" index="empty" disabled>
-            <el-icon><WarningFilled /></el-icon>
-            <span> 没有数据 </span>
-          </el-menu-item>
-          <el-menu-item
-            v-else
-            v-for="choice in menu.choices.value"
-            :index="`/choice/${choice.type}`"
-            :key="choice.type"
-          >
-            <el-icon><CaretRight /></el-icon>
-            <span>{{ choice.desc }}</span>
-          </el-menu-item>
-        </el-sub-menu>
-        <el-link v-if="editor" href="/admin" target="blank">
-          <el-menu-item class="devel-mod" index="" @click="develReset">
-            <el-icon><EditPen /></el-icon>
-            <span>开发者后台</span>
-          </el-menu-item>
-        </el-link>
-      </el-menu>
+          <el-sub-menu :index="`/option/${menu.option}`" v-for="menu in menus" :key="menu.option">
+            <template #title>
+              <el-icon>
+                <component :is="menu.icon" />
+              </el-icon>
+              <span>{{ menu.name }}</span>
+            </template>
+            <el-menu-item v-if="menu.choices.value === undefined" index="" style="background-color: darkgray">
+              <el-icon class="is-loading">
+                <Loading />
+              </el-icon>
+              <span>拼命加载中...</span>
+            </el-menu-item>
+            <el-menu-item v-else-if="menu.choices.value.length == 0" index="empty" disabled>
+              <el-icon>
+                <WarningFilled />
+              </el-icon>
+              <span> 没有数据 </span>
+            </el-menu-item>
+            <el-menu-item v-else v-for="choice in menu.choices.value" :index="`/choice/${choice.type}`"
+              :key="choice.type">
+              <el-icon>
+                <CaretRight />
+              </el-icon>
+              <span>{{ choice.desc }}</span>
+            </el-menu-item>
+          </el-sub-menu>
+          <el-link v-if="editor" href="/admin" target="blank">
+            <el-menu-item class="devel-mod" index="" @click="develReset">
+              <el-icon>
+                <EditPen />
+              </el-icon>
+              <span>开发者后台</span>
+            </el-menu-item>
+          </el-link>
+        </el-menu>
+      </el-scrollbar>
     </el-aside>
     <el-container>
       <el-header>
@@ -195,50 +192,27 @@ resize()
             {{ baseData._raw ? '角色 UID' : '客户端ID' }}：
           </el-button>
 
-          <el-input
-            v-if="baseData._raw"
-            v-model.number="baseData.uid"
-            placeholder="角色UID"
-            :clearable="true"
-            :maxlength="10"
-            :formatter="numeric"
-            :parser="numeric"
-            style="max-width: 8rem"
-          />
-          <el-input
-            v-else
-            v-model.number="baseData.cid"
-            placeholder="终端ID"
-            :clearable="true"
-            :maxlength="10"
-            :formatter="numeric"
-            :parser="numeric"
-            style="max-width: 8rem"
-          />
+          <el-input v-if="baseData._raw" v-model.number="baseData.uid" placeholder="角色UID" :clearable="true"
+            :maxlength="10" :formatter="numeric" :parser="numeric" style="max-width: 8rem" />
+          <el-input v-else v-model.number="baseData.cid" placeholder="终端ID" :clearable="true" :maxlength="10"
+            :formatter="numeric" :parser="numeric" style="max-width: 8rem" />
         </label>
         <label style="margin-left: 2rem">
           <el-text size="large">服务器：</el-text>
           <el-select clearable placeholder="选择服务器" v-model="baseData.sid">
-            <el-option
-              v-for="server in servers"
-              :key="server.sid"
-              :label="server.name"
-              :value="server.sid"
-            />
+            <el-option v-for="server in servers" :key="server.sid" :label="server.name" :value="server.sid" />
           </el-select>
         </label>
         <el-dropdown replacement="bottom-end">
           <span class="el-dropdown__box">
             <el-avatar src="/static/logo.png"></el-avatar>
-            <el-icon><CaretBottom /></el-icon>
+            <el-icon>
+              <CaretBottom />
+            </el-icon>
           </span>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item
-                command="profile"
-                :icon="SwitchButton"
-                @click="ElMessage.info('正在开发中...')"
-              >
+              <el-dropdown-item command="profile" :icon="SwitchButton" @click="ElMessage.info('正在开发中...')">
                 重置数据
               </el-dropdown-item>
             </el-dropdown-menu>
@@ -251,14 +225,10 @@ resize()
           <el-drawer :model-value="editor" size="50%" :show-close="false">
             <template #header="{ titleId, titleClass }">
               <h4 :id="titleId" :class="titleClass">代码调试工作台</h4>
-              <el-link
-                v-if="editor"
-                href="/admin"
-                target="blank"
-                @click="develReset"
-                type="info"
-              >
-                <el-icon><EditPen /></el-icon>
+              <el-link v-if="editor" href="/admin" target="blank" @click="develReset" type="info">
+                <el-icon>
+                  <EditPen />
+                </el-icon>
                 <span>开发者后台</span>
               </el-link>
             </template>
@@ -266,7 +236,8 @@ resize()
             <ElButton @click="debug" type="primary"> 测试 </ElButton>
           </el-drawer>
           <el-scrollbar :height="innerHeight">
-            <el-space v-if="tools && tools.length > 0" direction="vertical" alignment="left" size="large" style="width: 100%" fill>
+            <el-space v-if="tools && tools.length > 0" direction="vertical" alignment="left" size="large"
+              style="width: 100%" fill>
               <ToolItem v-for="tool in tools" :key="tool.id" :tool="tool" :base-data="baseData" />
             </el-space>
             <el-empty v-else description="空空如也"> </el-empty>
@@ -305,6 +276,11 @@ resize()
 }
 .layout-container .el-aside .el-menu {
   min-height: 100%;
+  border-right: none;
+  height: calc(100vh - 120px);
+}
+.layout-container .el-aside .el-scrollbar {
+  height: calc(100vh - 120px);
 }
 
 .layout-container .el-aside .el-aside__logo {
@@ -331,9 +307,6 @@ resize()
 
 .el-aside__logo:hover {
   animation: rotate 8s ease-in-out;
-}
-.layout-container .el-menu {
-  border-right: none;
 }
 .layout-container .el-header {
   background-color: #fff;
