@@ -13,10 +13,12 @@ import {
 } from '@element-plus/icons-vue'
 
 import api from '@/request/api'
-import PythonEditor from '@/components/PythonEditor.vue'
 import type { Server, CodeChoice, Code, BaseData } from '@/types'
 import { numeric } from '@/utils/Utils'
 import { ElMessage } from 'element-plus'
+
+const ToolItem = defineAsyncComponent(() => import('@/components/ToolItem.vue'))
+const PythonEditor = defineAsyncComponent(() => import('@/components/PythonEditor.vue'))
 
 const DEVEL_LIMIT = 9
 </script>
@@ -242,16 +244,6 @@ resize()
             </el-space>
             <el-empty v-else description="空空如也"> </el-empty>
           </el-scrollbar>
-
-          <!--
-          <el-button @click="loader = !loader">点击</el-button>
-          <div style="width: 30px; height: 30px; border: 1px solid black">
-            <LoadingStatus :status="loader ? 'loading' : 'success'" />
-          </div>
-          <div style="width: 30px; height: 30px; border: 1px solid black">
-            <LoadingStatus :status="loader ? 'loading' : 'error'" />
-          </div>
-          -->
         </el-card>
       </el-main>
       <el-footer> 后台测试 - 数据修改 Copyright © </el-footer>

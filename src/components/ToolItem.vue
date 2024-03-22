@@ -49,13 +49,14 @@
 </template>
 
 <script lang="ts" setup>
-import ViewBoard from '@/components/view/ViewBoard.vue'
 import api from '@/request/api'
 import type { BaseData, Code, Viewboard } from '@/types'
 import { numeric } from '@/utils/Utils'
 import { Select, CircleCheck, CloseBold, Setting, Warning } from '@element-plus/icons-vue'
 import { ElMessage, type FormInstance } from 'element-plus'
 import { reactive, ref } from 'vue'
+
+const ViewBoard = defineAsyncComponent(() => import('@/components/view/ViewBoard.vue'))
 
 const props = defineProps<{ tool: Code; baseData: BaseData }>()
 
