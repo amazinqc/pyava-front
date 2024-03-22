@@ -43,7 +43,7 @@
           </el-form-item>
         </el-tooltip>
       </el-space>
-      <ViewBoard :board="result" />
+      <ViewBoard v-if="result.status !== undefined" :board="result" />
     </el-card>
   </el-form>
 </template>
