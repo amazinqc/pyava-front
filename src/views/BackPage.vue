@@ -280,7 +280,7 @@ resize()
   height: calc(100vh - 120px);
 }
 .layout-container .el-aside .el-scrollbar {
-  height: calc(100vh - 120px);
+  max-height: calc(100vh - 119px);
 }
 
 .layout-container .el-aside .el-aside__logo {
